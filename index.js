@@ -10,21 +10,36 @@ if (process.env.NODE_ENV === 'production') {
     require('dotenv').config();
 }
 
-async function loop() {
+async function loop(currentTimestamp) {
     const data = await source.getData();
-    console.log(data[data.length - 1]);
+    const score = getScore(data, undefined, ...config.scoring.args);
+
+    const decisionInfo = {
+        timestamp: currentTimestamp,
+        assetPair: config.assetPair,
+        score
+    };
+
+    if (score > 0) decisionInfo.action = 'buy';
+    else if (score < 0) decisionInfo.action = 'sell';
+    else decisionInfo.action = 'hold';
+
+    decisionInfo.description = `${{buy: 'Bought', sell: 'Sold', hold: 'Held'}[decisionInfo.action]} ${decisionInfo.assetPair} - ${score.toFixed(2)} [${util.formatDate(new Date(currentTimestamp))}]`;
+
+    if (decisionInfo.action !== 'hold' || config.logging.logHoldDecisions) console.log(decisionInfo.description);
 }
 
-async function main() {
-    const getScore = analysis[config.scoring.functionName];
-    const source = new sources[config.source.name](config.assetPair);
-    
-    const nextPeriodStart = Math.ceil(Date.now() / (config.periodInterval * 60000)) * (config.periodInterval * 60000);
-    console.log(`Successfully initialized - waiting for next period (${util.formatDate(new Date(nextPeriodStart))})`)
-    setTimeout(() => {
-        loop();
-        setInterval(loop, config.periodInterval * 60000);
-    }, nextPeriodStart - Date.now());
-}
+const getScore = analysis[config.scoring.functionName];
+const source = new sources[config.source.name](config.assetPair);
 
-main();
+const nextPeriodStart = Math.ceil(Date.now() / (config.periodInterval * 60000)) * (config.periodInterval * 60000);
+console.log(`Successfully initialized - waiting for next period (${util.formatDate(new Date(nextPeriodStart))})`)
+
+let currentTimestamp = nextPeriodStart;
+setTimeout(() => {
+    loop(currentTimestamp);
+    setInterval(() => {
+        currentTimestamp += config.periodInterval * 60000;
+        loop(currentTimestamp);
+    }, config.periodInterval * 60000);
+}, nextPeriodStart - Date.now());

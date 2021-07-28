@@ -8,5 +8,8 @@
     "source": {
         "name": "Kraken",
         "minDataLength": 20
+    },
+    "logging": {
+        "logHoldDecisions": false
     }
 }
