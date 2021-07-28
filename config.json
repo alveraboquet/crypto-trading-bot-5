@@ -9,6 +9,9 @@
         "name": "Kraken",
         "minDataLength": 20
     },
+    "exchange": {
+        "orderType": "limit"
+    },
     "logging": {
         "logHoldDecisions": false
     }

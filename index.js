@@ -14,19 +14,27 @@ async function loop(currentTimestamp) {
     const data = await source.getData();
     const score = getScore(data, undefined, ...config.scoring.args);
 
-    const decisionInfo = {
-        timestamp: currentTimestamp,
-        assetPair: config.assetPair,
-        score
-    };
-
-    if (score > 0) decisionInfo.action = 'buy';
-    else if (score < 0) decisionInfo.action = 'sell';
-    else decisionInfo.action = 'hold';
-
-    decisionInfo.description = `${{buy: 'Bought', sell: 'Sold', hold: 'Held'}[decisionInfo.action]} ${decisionInfo.assetPair} - ${score.toFixed(2)} [${util.formatDate(new Date(currentTimestamp))}]`;
-
-    if (decisionInfo.action !== 'hold' || config.logging.logHoldDecisions) console.log(decisionInfo.description);
+    if (score === 0) {
+        if (config.logHoldDecisions) console.log(`Held ${config.assetPair} [${util.formatDate(new Date(currentTimestamp))}]`);
+    } else {
+        const order = new util.Order(
+            undefined,
+            undefined,
+            currentTimestamp,
+            config.periodInterval,
+            config.assetPair,
+            undefined,
+            config.exchange.orderType,
+            undefined,
+            undefined,
+            undefined,
+            score,
+            undefined
+        );
+    
+        order.description = `${order.action === 'buy' ? 'Bought' : 'Sold'} ${order.pair} - ${order.score.toFixed(2)} [${util.formatDate(new Date(order.timestamp))}]`;
+        console.log(order.description);
+    }
 }
 
 const getScore = analysis[config.scoring.functionName];
