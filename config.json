@@ -1,6 +1,10 @@
 {
+    "mongoUrl": "mongodb://localhost:27017",
     "assetPair": "ETHUSDT",
     "periodInterval": 1,
+    "logging": {
+        "logHoldDecisions": false
+    },
     "scoring": {
         "functionName": "emaScore",
         "args": [[3, 6, 9], 2, "close"]
@@ -12,8 +16,5 @@
     "exchange": {
         "orderType": "limit",
         "forceMaker": true
-    },
-    "logging": {
-        "logHoldDecisions": false
     }
 }

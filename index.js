@@ -34,7 +34,9 @@ async function loop(currentTimestamp) {
             undefined
         );
 
-        order.description = `${order.action === 'buy' ? 'Bought' : 'Sold'} ${order.pair} (${order.score.toFixed(2)}) [${util.formatDate(new Date(order.timestamp))}]`;
+        order.action = score > 0 ? 'buy' : 'sell';
+
+        order.description = `${order.action === 'buy' ? 'Bought' : 'Sold'} ${order.pair} (${order.score.toFixed(2)}) [${util.formatDate(new Date(order.timestamp))}]`;  // TODO: Improve description
         console.log(order.description);
 
         mongoClient.db('cryptoScalpingBot').collection('orders').insertOne(order);
@@ -44,7 +46,7 @@ async function loop(currentTimestamp) {
 const getScore = analysis[config.scoring.functionName];
 const source = new sources[config.source.name](config.assetPair);
 
-const mongoClient = new MongoClient('mongodb://localhost:27017');
+const mongoClient = new MongoClient(config.mongoUrl);
 
 process.on('SIGINT', () => {
     mongoClient.close();
