@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "dev": "node index.js",
+    "start": "NODE_ENV=production node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "kraken-api": "^1.0.1"
+  }
+}
