@@ -10,7 +10,6 @@ class Period {
 
 class Order {
     txid;
-    trades;
     timestamp;
     periodInterval;
     pair;
@@ -19,12 +18,12 @@ class Order {
     price;
     volume;
     cost;
+    forceMaker;
     score;
     description;
 
-    constructor(txid, trades, timestamp, periodInterval, pair, action, type, price, volume, cost, score, description) {
+    constructor(txid, timestamp, periodInterval, pair, action, type, price, volume, cost, forceMaker, score, description) {
         this.txid = txid;
-        this.trades = trades;
         this.timestamp = timestamp;
         this.periodInterval = periodInterval;
         this.pair = pair;
@@ -33,6 +32,7 @@ class Order {
         this.price = price;
         this.volume = volume;
         this.cost = cost;
+        this.forceMaker = forceMaker;
         this.score = score;
         this.description = description;
     }

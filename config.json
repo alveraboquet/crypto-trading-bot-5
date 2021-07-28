@@ -1,5 +1,7 @@
 {
     "mongoUrl": "mongodb://localhost:27017",
+    "baseAsset": "XETH",
+    "quoteAsset": "USDT",
     "assetPair": "ETHUSDT",
     "periodInterval": 1,
     "logging": {
@@ -14,7 +16,10 @@
         "minDataLength": 20
     },
     "exchange": {
-        "orderType": "limit",
-        "forceMaker": true
+        "name": "Kraken",
+        "baseMinimumTransaction": 0.0005,
+        "quoteMinimumTransaction": 1,
+        "forceMaker": false,
+        "makerMargin": 1
     }
 }
