@@ -1,11 +1,9 @@
 class Period {
     timestamp;  // JS timestamp of start time
-    duration;  // Period interval in minutes
-    ohlc = {};
+    ohlc;
 
-    constructor(timestamp, duration, ohlc) {
+    constructor(timestamp, ohlc) {
         this.timestamp = timestamp;
-        this.duration = duration;
         this.ohlc = ohlc;
     }
 }

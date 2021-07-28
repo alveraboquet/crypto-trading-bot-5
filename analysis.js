@@ -33,9 +33,7 @@ function calculateEMA(data, numPeriods, targetIndex, smoothing = 2, source = 'cl
 }
 
 // Score functions
-function emaScore(data, numPeriods, targetIndex, smoothing = 2, source = 'close') {
-    targetIndex = targetIndex ?? data.length - 1;
-
+function emaScore(data, targetIndex, numPeriods, smoothing = 2, source = 'close') {
     if (numPeriods.some((x) => x <= 0)) throw new RangeError('Num. periods parameter out of range!');
     if (targetIndex >= data.length || targetIndex < 1) throw new RangeError('Target index out of range!');
     if (numPeriods.some((x) => targetIndex - (x * 2) < 0)) throw new RangeError('Not enough data provided for the number of periods specified!');
@@ -44,8 +42,8 @@ function emaScore(data, numPeriods, targetIndex, smoothing = 2, source = 'close'
 
     const emaValues = numPeriods.map((n) => {
         return {
-            current: calculateEMA(data, n, targetIndex, smoothing, source),
-            previous: calculateEMA(data, n, targetIndex - 1, smoothing, source)
+            previous: calculateEMA(data, n, targetIndex - 1, smoothing, source),
+            current: calculateEMA(data, n, targetIndex, smoothing, source)
         };
     });
 

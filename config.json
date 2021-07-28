@@ -1,3 +1,12 @@
 {
-    
+    "assetPair": "ETHUSDT",
+    "scoring": {
+        "functionName": "emaScore",
+        "args": [[3, 6, 9], 2, "close"]
+    },
+    "source": {
+        "name": "Kraken",
+        "periodInterval": 5,
+        "minDataLength": 19
+    }
 }
