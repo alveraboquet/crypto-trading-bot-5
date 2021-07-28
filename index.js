@@ -9,7 +9,7 @@ const {MongoClient, MongoDriverError} = require('mongodb');
 console.log(`PID: ${process.pid}\n`);
 
 // Use system environment variables in production
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config();
 }
 
@@ -39,7 +39,6 @@ async function loop(currentTimestamp) {
         );
 
         order.action = score > 0 ? 'buy' : 'sell';
-
         order.description = `${order.action === 'buy' ? 'Bought' : 'Sold'} ${order.volume} @ ${order.price} ${order.pair} (${order.score.toFixed(2)}) [${util.formatDate(new Date(order.timestamp))}]`;
         console.log(order.description);
 
@@ -63,7 +62,6 @@ process.on('SIGTERM', stop);
 process.on('uncaughtException', (error, origin) => {
     console.log(`${error}`);
     stop();
-
     process.exit(1);
 });
 

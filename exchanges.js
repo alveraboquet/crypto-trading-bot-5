@@ -63,7 +63,7 @@ class Kraken {
     }
 
     async getBalance() {
-        const result = (await this.krakenClient.api('Balance')).result;
+        const result = (await this.krakenClient.api('Balance', {})).result;
         
         let entries = Object.entries(result);
         entries = entries.filter((pair) => [config.baseAsset, config.quoteAsset].includes(pair[0]));

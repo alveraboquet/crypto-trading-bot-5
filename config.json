@@ -3,7 +3,7 @@
     "baseAsset": "XETH",
     "quoteAsset": "USDT",
     "assetPair": "ETHUSDT",
-    "periodInterval": 1,
+    "periodInterval": 5,
     "logging": {
         "logHoldDecisions": false
     },
