@@ -10,7 +10,8 @@
         "minDataLength": 20
     },
     "exchange": {
-        "orderType": "limit"
+        "orderType": "limit",
+        "forceMaker": true
     },
     "logging": {
         "logHoldDecisions": false

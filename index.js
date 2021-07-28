@@ -3,6 +3,8 @@ const util = require('./util.js');
 const analysis = require('./analysis.js');
 const sources = require('./sources.js');
 
+const {MongoClient} = require('mongodb');
+
 console.log(`PID: ${process.pid}\n`);
 
 // Use system environment variables in production
@@ -12,7 +14,7 @@ if (process.env.NODE_ENV === 'production') {
 
 async function loop(currentTimestamp) {
     const data = await source.getData();
-    const score = getScore(data, undefined, ...config.scoring.args);
+    const score = getScore(data, data.length - 1, ...config.scoring.args);
 
     if (score === 0) {
         if (config.logHoldDecisions) console.log(`Held ${config.assetPair} [${util.formatDate(new Date(currentTimestamp))}]`);
@@ -31,23 +33,37 @@ async function loop(currentTimestamp) {
             score,
             undefined
         );
-    
-        order.description = `${order.action === 'buy' ? 'Bought' : 'Sold'} ${order.pair} - ${order.score.toFixed(2)} [${util.formatDate(new Date(order.timestamp))}]`;
+
+        order.description = `${order.action === 'buy' ? 'Bought' : 'Sold'} ${order.pair} (${order.score.toFixed(2)}) [${util.formatDate(new Date(order.timestamp))}]`;
         console.log(order.description);
+
+        mongoClient.db('cryptoScalpingBot').collection('orders').insertOne(order);
     }
 }
 
 const getScore = analysis[config.scoring.functionName];
 const source = new sources[config.source.name](config.assetPair);
 
-const nextPeriodStart = Math.ceil(Date.now() / (config.periodInterval * 60000)) * (config.periodInterval * 60000);
-console.log(`Successfully initialized - waiting for next period (${util.formatDate(new Date(nextPeriodStart))})`)
+const mongoClient = new MongoClient('mongodb://localhost:27017');
 
-let currentTimestamp = nextPeriodStart;
-setTimeout(() => {
-    loop(currentTimestamp);
-    setInterval(() => {
-        currentTimestamp += config.periodInterval * 60000;
+process.on('SIGINT', () => {
+    mongoClient.close();
+});
+
+async function run() {
+    await mongoClient.connect().catch((error) => {throw new Error('Failed to connect to MongoDB instance!');});
+
+    const nextPeriodStart = Math.ceil(Date.now() / (config.periodInterval * 60000)) * (config.periodInterval * 60000);
+    console.log(`Successfully initialized - waiting for next period (${util.formatDate(new Date(nextPeriodStart))})`);
+
+    let currentTimestamp = nextPeriodStart;
+    setTimeout(() => {
         loop(currentTimestamp);
-    }, config.periodInterval * 60000);
-}, nextPeriodStart - Date.now());
+        setInterval(() => {
+            currentTimestamp += config.periodInterval * 60000;
+            loop(currentTimestamp);
+        }, config.periodInterval * 60000);
+    }, nextPeriodStart - Date.now());
+}
+
+run();
