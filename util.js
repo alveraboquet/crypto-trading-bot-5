@@ -8,6 +8,11 @@ class Period {
     }
 }
 
+function formatDate(date) {
+    return `${date.toISOString().slice(0, 10)} ${date.toTimeString().slice(0, 17)}`;
+}
+
 module.exports = {
-    Period
+    Period,
+    formatDate
 };
