@@ -14,14 +14,23 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 async function loop(currentTimestamp) {
+    console.log('loop start');
+
     const data = await source.getData();
     const score = getScore(data, data.length - 1, ...config.scoring.args);
 
+    console.log(`score ${score}`);
+
     if (score === 0) {
-        if (config.logHoldDecisions) console.log(`Held ${config.assetPair} [${util.formatDate(new Date(currentTimestamp))}]`);
+        console.log('holding');
+        if (config.logging.logHoldDecisions) console.log(`Held ${config.assetPair} [${util.formatDate(new Date(currentTimestamp))}]`);
     } else {
+        console.log('ordering');
+
         const orderInfo = await exchange.placeOrder(score);
         if (!orderInfo) return;
+
+        console.log('order placed');
         
         const order = new util.Order(
             orderInfo.txid,
@@ -60,11 +69,11 @@ process.on('SIGINT', stop);
 process.on('SIGBREAK', stop);
 process.on('SIGTERM', stop);
 
-// process.on('uncaughtException', (error, origin) => {
-//     console.log(`${error}`);
-//     stop();
-//     process.exit(1);
-// });
+process.on('uncaughtException', (error, origin) => {
+    console.log(`${error}`);
+    stop();
+    process.exit(1);
+});
 
 const getScore = analysis[config.scoring.functionName];
 const source = new sources[config.source.name]();
@@ -77,11 +86,12 @@ async function run() {
     await mongoClient.connect().catch((error) => {throw new Error('Failed to connect to MongoDB instance!');});
     await mongoClient.db('admin').command({ping: 1});
 
-    const nextPeriodStart = Math.ceil(Date.now() / (config.periodInterval * 60000)) * (config.periodInterval * 60000);
+    const nextPeriodStart = Math.ceil(Date.now() / (config.periodInterval * 60000)) * (config.periodInterval * 60000) - (config.periodInterval * 60000);
     console.log(`Successfully initialized - waiting for next period (${util.formatDate(new Date(nextPeriodStart))})`);
 
     let currentTimestamp = nextPeriodStart;
     setTimeout(() => {
+        console.log('running');
         loop(currentTimestamp);
         loopInterval = setInterval(() => {
             currentTimestamp += config.periodInterval * 60000;

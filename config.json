@@ -3,9 +3,9 @@
     "baseAsset": "XETH",
     "quoteAsset": "USDT",
     "assetPair": "ETHUSDT",
-    "periodInterval": 1,
+    "periodInterval": 5,
     "logging": {
-        "logHoldDecisions": false
+        "logHoldDecisions": true
     },
     "scoring": {
         "functionName": "emaScore",
@@ -22,7 +22,7 @@
         "basePrecision": 2,
         "quoteMinimumTransaction": 10,
         "quotePrecision": 8,
-        "forceMaker": true,
-        "makerMargin": 1
+        "forceMaker": false,
+        "margin": 1.5
     }
 }
