@@ -38,11 +38,10 @@ class Kraken {
                     if (error.message === 'General:Invalid arguments:volume') return null;
                     else throw error;
                 }));
-                if (!repsonse) return null;
-                const result = response.result;
-                await util.sleep(50);
+                if (!response) return null;
+                await util.sleep(100);
 
-                return {txid: result.txid, price, volume, cost};
+                return {txid: response.result.txid, price, volume, cost};
             } else {
                 if (!currentBalance[config.baseAsset]) return null;
 
@@ -52,7 +51,7 @@ class Kraken {
 
                 if (volume < config.exchange.baseMinimumTransaction) return null;
 
-                const result = (await this.krakenClient.api('AddOrder', {
+                const response = (await this.krakenClient.api('AddOrder', {
                     pair: config.assetPair,
                     type: 'sell',
                     ordertype: 'limit',
@@ -60,17 +59,21 @@ class Kraken {
                     price: price,
                     expiretm: `+30`,
                     oflags: config.exchange.forceMaker ? 'post' : undefined
-                })).result;
-                await util.sleep(50);
+                }).catch((error) => {
+                    if (error.message === 'General:Invalid arguments:volume') return null;
+                    else throw error;
+                }));
+                if (!response) return null;
+                await util.sleep(100);
                 
-                return {txid: result.txid, price, volume, cost};
+                return {txid: response.result.txid, price, volume, cost};
             }
         }
     }
 
     async getBalance() {
         const result = (await this.krakenClient.api('Balance', {})).result;
-        await util.sleep(50);
+        await util.sleep(100);
         
         let entries = Object.entries(result);
         entries = entries.filter((pair) => [config.baseAsset, config.quoteAsset].includes(pair[0]));
@@ -82,7 +85,7 @@ class Kraken {
 
     async getTickerInfo(pair) {
         const result = (await this.krakenClient.api('Ticker', {pair: pair ? pair : config.assetPair})).result[pair ? pair : config.assetPair];
-        await util.sleep(50);
+        await util.sleep(100);
         return result;
     }
 }

@@ -25,7 +25,7 @@ class Kraken {
     async updateData() {
         const since = Math.floor((Date.now() - (config.source.minDataLength * this.msPeriodInterval)) / 1000);
         const response = (await this.krakenClient.api('OHLC', {pair: config.assetPair, interval: config.periodInterval, since}));
-        await util.sleep(50);
+        await util.sleep(100);
         const rawData = Object.entries(response.result).filter((pair) => pair[0] !== 'last')[0][1].slice(0, -1);
 
         const newData = rawData.map((periodData) => {

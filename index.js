@@ -17,7 +17,7 @@ async function loop(currentTimestamp) {
     const data = await source.getData();
     const score = getScore(data);
     if (score === 0) {
-        if (config.logging.logHoldDecisions) console.log(`Held ${config.assetPair} [${util.formatDate(new Date(currentTimestamp))}]`);
+        if (config.logging.logHoldDecisions) console.log(`Held ${config.assetPair} (${score}) [${util.formatDate(new Date(currentTimestamp))}]`);
     } else {
         const orderInfo = await exchange.placeOrder(score);
         if (orderInfo) {
@@ -47,7 +47,7 @@ async function loop(currentTimestamp) {
                 } else throw error;
             });
         } else {
-            if (config.logging.logHoldDecisions) console.log(`Held ${config.assetPair} [${util.formatDate(new Date(currentTimestamp))}]`);
+            if (config.logging.logHoldDecisions) console.log(`Held ${config.assetPair} (${score}) [${util.formatDate(new Date(currentTimestamp))}]`);
         }
     }
 
@@ -56,12 +56,12 @@ async function loop(currentTimestamp) {
     const quoteValueTicker = await exchange.getTickerInfo(config.logging.quoteValueTicker.name);
 
     let total = 0;
-    total += Math.floor((config.logging.baseValueTicker.baseIsValueCurrency ? balance[config.baseAsset] / baseValueTicker.c[0] : balance[config.baseAsset] * baseValueTicker.c[0]) * 100) / 100;
-    total += Math.floor((config.logging.quoteValueTicker.baseIsValueCurrency ? balance[config.quoteAsset] / quoteValueTicker.c[0] : balance[config.quoteAsset] * quoteValueTicker.c[0]) * 100) / 100;
+    total += config.logging.baseValueTicker.baseIsValueCurrency ? balance[config.baseAsset] / baseValueTicker.c[0] : balance[config.baseAsset] * baseValueTicker.c[0];
+    total += config.logging.quoteValueTicker.baseIsValueCurrency ? balance[config.quoteAsset] / quoteValueTicker.c[0] : balance[config.quoteAsset] * quoteValueTicker.c[0];
 
     const balanceInfo = {
         timestamp: currentTimestamp,
-        totalValue: total,
+        totalValue: Math.floor(total * 100) / 100,
         valueCurrency: config.logging.valueCurrency,
         baseBalance: Math.round(balance[config.baseAsset] * (10 ** config.exchange.basePrecision)) / (10 ** config.exchange.basePrecision),
         quoteBalance: Math.round(balance[config.quoteAsset] * (10 ** config.exchange.quotePrecision)) / (10 ** config.exchange.quotePrecision)
