@@ -14,7 +14,6 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 async function loop(currentTimestamp) {
-
     const data = await source.getData();
     const score = getScore(data, data.length - 1, ...config.scoring.args);
 
@@ -50,6 +49,29 @@ async function loop(currentTimestamp) {
             }
         });
     }
+
+    const balance = await exchange.getBalance();
+    const baseValueTickerPrice = await exchange.getTickerInfo(config.logging.baseValueTicker.name).c[0];
+    const quoteValueTickerPrice = await exchange.getTickerInfo(config.logging.quoteValueTicker.name).c[0];
+
+    let total = 0;
+    total += Math.floor((config.logging.baseValueTicker.baseIsValueCurrency ? balance[config.baseAsset] / baseValueTickerPrice : balance[config.baseAsset] * baseValueTickerPrice) * 100) / 100;
+    total += Math.floor((config.logging.quoteValueTicker.baseIsValueCurrency ? balance[config.quoteAsset] / quoteValueTickerPrice : balance[config.quoteAsset] * quoteValueTickerPrice) * 100) / 100;
+
+    const balanceInfo = {
+        timestamp: currentTimestamp,
+        totalValue: total,
+        valueCurrency: config.logging.valueCurrency,
+        baseBalance: balance[config.baseAsset],
+        quoteBalance: balance[config.quoteAsset]
+    };
+
+    mongoClient.db('cryptoTradingBot').collection('balances').insertOne(balanceInfo).catch(async (error) => {
+        if (error instanceof MongoDriverError && error.message === 'MongoClient must be connected to perform this operation') {
+            await mongoClient.db('admin').command({ping: 1});
+            mongoClient.db('cryptoTradingBot').collection('balances').insertOne(balanceInfo);
+        }
+    });
 }
 
 function stop() {

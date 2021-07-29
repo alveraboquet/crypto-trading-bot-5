@@ -5,7 +5,16 @@
     "assetPair": "ETHUSDT",
     "periodInterval": 5,
     "logging": {
-        "logHoldDecisions": true
+        "logHoldDecisions": true,
+        "valueCurrency": "GBP",
+        "baseValueTicker": {
+            "name": "XETHZGBP",
+            "baseIsValueCurrency": false
+        },
+        "quoteValueTicker": {
+            "name": "USDTGBP",
+            "baseIsValueCurrency": false
+        }
     },
     "scoring": {
         "functionName": "emaScore",

@@ -73,8 +73,8 @@ class Kraken {
         return data;
     }
 
-    async getTickerInfo() {
-        return (await this.krakenClient.api('Ticker', {pair: config.assetPair})).result[config.assetPair];
+    async getTickerInfo(pair) {
+        return (await this.krakenClient.api('Ticker', {pair: pair ? pair : config.assetPair})).result[pair ? pair : config.assetPair];
     }
 }
 
