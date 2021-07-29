@@ -78,7 +78,7 @@ async function run() {
     await mongoClient.connect().catch((error) => {throw new Error('Failed to connect to MongoDB instance!');});
     await mongoClient.db('admin').command({ping: 1});
 
-    const nextPeriodStart = Math.ceil(Date.now() / (config.periodInterval * 60000)) * (config.periodInterval * 60000) - (config.periodInterval * 60000);
+    const nextPeriodStart = Math.ceil(Date.now() / (config.periodInterval * 60000)) * (config.periodInterval * 60000);
     console.log(`Successfully initialized - waiting for next period (${util.formatDate(new Date(nextPeriodStart))})`);
 
     let currentTimestamp = nextPeriodStart;
