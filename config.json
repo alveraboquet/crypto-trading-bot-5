@@ -3,7 +3,7 @@
     "baseAsset": "XETH",
     "quoteAsset": "USDT",
     "assetPair": "ETHUSDT",
-    "periodInterval": 5,
+    "periodInterval": 1,
     "logging": {
         "logHoldDecisions": false
     },
@@ -17,9 +17,12 @@
     },
     "exchange": {
         "name": "Kraken",
-        "baseMinimumTransaction": 0.0005,
-        "quoteMinimumTransaction": 1,
-        "forceMaker": false,
+        "pricePrecision": 2,
+        "baseMinimumTransaction": 0.004,
+        "basePrecision": 2,
+        "quoteMinimumTransaction": 10,
+        "quotePrecision": 8,
+        "forceMaker": true,
         "makerMargin": 1
     }
 }

@@ -53,17 +53,18 @@ async function loop(currentTimestamp) {
 
 function stop() {
     mongoClient.close();
+    clearInterval(loopInterval);
 }
 
 process.on('SIGINT', stop);
 process.on('SIGBREAK', stop);
 process.on('SIGTERM', stop);
 
-process.on('uncaughtException', (error, origin) => {
-    console.log(`${error}`);
-    stop();
-    process.exit(1);
-});
+// process.on('uncaughtException', (error, origin) => {
+//     console.log(`${error}`);
+//     stop();
+//     process.exit(1);
+// });
 
 const getScore = analysis[config.scoring.functionName];
 const source = new sources[config.source.name]();
@@ -71,6 +72,7 @@ const exchange = new exchanges[config.exchange.name]();
 
 const mongoClient = new MongoClient(config.mongoUrl);
 
+let loopInterval;
 async function run() {
     await mongoClient.connect().catch((error) => {throw new Error('Failed to connect to MongoDB instance!');});
     await mongoClient.db('admin').command({ping: 1});
@@ -81,7 +83,7 @@ async function run() {
     let currentTimestamp = nextPeriodStart;
     setTimeout(() => {
         loop(currentTimestamp);
-        setInterval(() => {
+        loopInterval = setInterval(() => {
             currentTimestamp += config.periodInterval * 60000;
             loop(currentTimestamp);
         }, config.periodInterval * 60000);
