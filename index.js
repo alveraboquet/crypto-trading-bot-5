@@ -39,7 +39,7 @@ async function loop(currentTimestamp) {
         );
 
         order.action = score > 0 ? 'buy' : 'sell';
-        order.description = `${order.action === 'buy' ? 'Bought' : 'Sold'} ${order.volume} @ ${order.price} ${order.pair} (${order.score.toFixed(2)}) [${util.formatDate(new Date(order.timestamp))}]`;
+        order.description = `${order.action === 'buy' ? 'Bought' : 'Sold'} ${order.volume} ${order.pair} @ ${order.price} (${order.score.toFixed(2)}) [${util.formatDate(new Date(order.timestamp))}]`;
         console.log(order.description);
 
         mongoClient.db('cryptoTradingBot').collection('orders').insertOne(order).catch(async (error) => {
