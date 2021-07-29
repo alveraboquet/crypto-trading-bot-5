@@ -3,7 +3,7 @@
     "baseAsset": "XETH",
     "quoteAsset": "USDT",
     "assetPair": "ETHUSDT",
-    "periodInterval": 5,
+    "periodInterval": 1,
     "logging": {
         "logHoldDecisions": true,
         "valueCurrency": "GBP",
@@ -39,9 +39,10 @@
         "pricePrecision": 2,
         "baseMinimumTransaction": 0.004,
         "basePrecision": 8,
-        "quoteMinimumTransaction": 10,
+        "quoteMinimumTransaction": 15,
         "quotePrecision": 2,
         "forceMaker": false,
-        "margin": 1.5
+        "takerMargin": 1,
+        "makerMargin": 2
     }
 }

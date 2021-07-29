@@ -133,6 +133,14 @@ function stochasticScore(data, targetIndex, numKPeriods, numDPeriods, overbought
         score += 0.5;
     }
 
+    if (kValues.current > overboughtLevel) {
+        if (score <= -0.25) score += 0.25;
+        else if (score < 0) score = 0;
+    } else if (kValues.current <= oversoldLevel) {
+        if (score >= 0.25) score -= 0.25;
+        else if (score > 0) score = 0;
+    }
+
     return score;
 }
 

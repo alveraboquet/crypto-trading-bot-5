@@ -20,9 +20,9 @@ class Kraken {
             if (score > 0) {
                 if (!currentBalance[config.quoteAsset]) return null;
 
-                const price = Math.floor((parseFloat(tickerInfo.a[0]) + config.exchange.margin) * (10 ** config.exchange.pricePrecision)) / (10 ** config.exchange.pricePrecision);
-                const cost = Math.floor((currentBalance[config.quoteAsset] * score) * (10 ** config.exchange.basePrecision)) / (10 ** config.exchange.basePrecision);
-                const volume = Math.floor((cost / price) * (10 ** config.exchange.quotePrecision)) / (10 ** config.exchange.quotePrecision);
+                const price = Math.floor((parseFloat(tickerInfo.a[0]) + (config.exchange.forceMaker ? config.exchange.makerMargin : config.exchange.takerMargin)) * (10 ** config.exchange.pricePrecision)) / (10 ** config.exchange.pricePrecision);
+                const cost = Math.floor((currentBalance[config.quoteAsset] * score) * (10 ** config.exchange.quotePrecision)) / (10 ** config.exchange.quotePrecision);
+                const volume = Math.floor((cost / price) * (10 ** config.exchange.basePrecision)) / (10 ** config.exchange.basePrecision);
 
                 if (cost < config.exchange.quoteMinimumTransaction) return null;
 
@@ -45,9 +45,9 @@ class Kraken {
             } else {
                 if (!currentBalance[config.baseAsset]) return null;
 
-                const price = Math.floor((parseFloat(tickerInfo.b[0]) - config.exchange.margin) * (10 ** config.exchange.pricePrecision)) / (10 ** config.exchange.pricePrecision);
-                const volume = Math.floor((currentBalance[config.baseAsset] * -score) * (10 ** config.exchange.quotePrecision)) / (10 ** config.exchange.quotePrecision);
-                const cost = Math.floor((volume * price) * (10 ** config.exchange.basePrecision)) / (10 ** config.exchange.basePrecision);
+                const price = Math.floor((parseFloat(tickerInfo.b[0]) - (config.exchange.forceMaker ? config.exchange.makerMargin : config.exchange.takerMargin)) * (10 ** config.exchange.pricePrecision)) / (10 ** config.exchange.pricePrecision);
+                const volume = Math.floor((currentBalance[config.baseAsset] * -score) * (10 ** config.exchange.basePrecision)) / (10 ** config.exchange.basePrecision);
+                const cost = Math.floor((volume * price) * (10 ** config.exchange.quotePrecision)) / (10 ** config.exchange.quotePrecision);
 
                 if (volume < config.exchange.baseMinimumTransaction) return null;
 
