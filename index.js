@@ -21,33 +21,35 @@ async function loop(currentTimestamp) {
         if (config.logging.logHoldDecisions) console.log(`Held ${config.assetPair} [${util.formatDate(new Date(currentTimestamp))}]`);
     } else {
         const orderInfo = await exchange.placeOrder(score);
-        if (!orderInfo) return;
-        
-        const order = new util.Order(
-            orderInfo.txid,
-            currentTimestamp,
-            config.periodInterval,
-            config.assetPair,
-            undefined,
-            'limit',
-            orderInfo.price,
-            orderInfo.volume,
-            orderInfo.cost,
-            config.exchange.forceMaker,
-            score,
-            undefined
-        );
-
-        order.action = score > 0 ? 'buy' : 'sell';
-        order.description = `${order.action === 'buy' ? 'Bought' : 'Sold'} ${order.volume} ${order.pair} @ ${order.price} (${order.score.toFixed(2)}) [${util.formatDate(new Date(order.timestamp))}]`;
-        console.log(order.description);
-
-        mongoClient.db('cryptoTradingBot').collection('orders').insertOne(order).catch(async (error) => {
-            if (error instanceof MongoDriverError && error.message === 'MongoClient must be connected to perform this operation') {
-                await mongoClient.db('admin').command({ping: 1});
-                mongoClient.db('cryptoTradingBot').collection('orders').insertOne(order);
-            } else throw error;
-        });
+        if (orderInfo) {
+            const order = new util.Order(
+                orderInfo.txid,
+                currentTimestamp,
+                config.periodInterval,
+                config.assetPair,
+                undefined,
+                'limit',
+                orderInfo.price,
+                orderInfo.volume,
+                orderInfo.cost,
+                config.exchange.forceMaker,
+                score,
+                undefined
+            );
+    
+            order.action = score > 0 ? 'buy' : 'sell';
+            order.description = `${order.action === 'buy' ? 'Bought' : 'Sold'} ${order.volume} ${order.pair} @ ${order.price} (${order.score.toFixed(2)}) [${util.formatDate(new Date(order.timestamp))}]`;
+            console.log(order.description);
+    
+            mongoClient.db('cryptoTradingBot').collection('orders').insertOne(order).catch(async (error) => {
+                if (error instanceof MongoDriverError && error.message === 'MongoClient must be connected to perform this operation') {
+                    await mongoClient.db('admin').command({ping: 1});
+                    mongoClient.db('cryptoTradingBot').collection('orders').insertOne(order);
+                } else throw error;
+            });
+        } else {
+            if (config.logging.logHoldDecisions) console.log(`Held ${config.assetPair} [${util.formatDate(new Date(currentTimestamp))}]`);
+        }
     }
 
     const balance = await exchange.getBalance();

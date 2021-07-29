@@ -53,13 +53,14 @@ function calculateStochasticK(data, numPeriods, targetIndex, source = 'close') {
 function calculateStochasticD(data, numKPeriods, numDPeriods, targetIndex) {
     targetIndex = targetIndex ?? data.length - 1;
 
-    if (numPeriods <= 0) throw new RangeError('Num. periods parameter out of range!');
+    if (numKPeriods <= 0) throw new RangeError('Num. K periods parameter out of range!');
+    if (numDPeriods <= 0) throw new RangeError('Num. D periods parameter out of range!');
     if (targetIndex >= data.length || targetIndex < 0) throw new RangeError('Target index out of range!');
     if (targetIndex - (numKPeriods + numDPeriods) + 1 < 0) throw new RangeError('Not enough data provided for the number of periods specified!');
 
     const kSlice = [];
-    for (let i = targetIndex; i > targetIndex - numDPeriods; i++) {
-        kSlice.push(calculateStochasticK(data, i, numKPeriods));
+    for (let i = targetIndex; i > targetIndex - numDPeriods; i--) {
+        kSlice.push(calculateStochasticK(data, numKPeriods, i));
     }
 
     const sum = kSlice.reduce((p, c) => p + c, 0);
