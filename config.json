@@ -17,8 +17,12 @@
         }
     },
     "scoring": {
-        "functionName": "emaScore",
-        "args": [[3, 6, 9], 2, "close"]
+        "functions": [
+            {
+                "functionName": "emaScore",
+                "args": [[3, 6, 9], 2, "close"]
+            }
+        ]
     },
     "source": {
         "name": "Kraken",

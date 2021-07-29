@@ -59,6 +59,22 @@ function emaScore(data, targetIndex, numPeriods, smoothing = 2, source = 'close'
     return score;
 }
 
+function combineScoreFunctions(functions, analysis) {
+    return (data, targetIndex) => {
+        let total = 0;
+        for (const {functionName, args} of functions) {
+            total += analysis[functionName](data, targetIndex, ...args) * (1 / functions.length);
+        }
+
+        total = Math.round(total * 100) / 100;
+        if (total > 1) total = 1;
+        else if (total < 0) total = 0;
+
+        return total;
+    };
+}
+
 module.exports = {
-    emaScore
+    emaScore,
+    combineScoreFunctions
 };

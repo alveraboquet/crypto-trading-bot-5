@@ -15,7 +15,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 async function loop(currentTimestamp) {
     const data = await source.getData();
-    const score = getScore(data, data.length - 1, ...config.scoring.args);
+    const score = getScore(data, data.length - 1);
 
     if (score === 0) {
         if (config.logging.logHoldDecisions) console.log(`Held ${config.assetPair} [${util.formatDate(new Date(currentTimestamp))}]`);
@@ -89,7 +89,7 @@ process.on('uncaughtException', (error, origin) => {
     process.exit(1);
 });
 
-const getScore = analysis[config.scoring.functionName];
+const getScore = analysis.combineScoreFunctions(config.scoring.functions, analysis);
 const source = new sources[config.source.name]();
 const exchange = new exchanges[config.exchange.name]();
 
