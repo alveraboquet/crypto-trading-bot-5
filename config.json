@@ -20,7 +20,13 @@
         "functions": [
             {
                 "functionName": "emaScore",
-                "args": [[3, 6, 9], 2, "close"]
+                "args": [[3, 6, 9], 2, "close"],
+                "weight": 0.75
+            },
+            {
+                "functionName": "stochasticScore",
+                "args": [14, 3, 80, 20, "close"],
+                "weight": 0.25
             }
         ]
     },
