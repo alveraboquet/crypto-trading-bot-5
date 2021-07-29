@@ -1,4 +1,5 @@
 const config = require('./config.json');
+const util = require('./util.js');
 
 const KrakenClient = require('kraken-api');
 
@@ -25,7 +26,7 @@ class Kraken {
 
                 if (cost < config.exchange.quoteMinimumTransaction) return null;
 
-                const result = (await this.krakenClient.api('AddOrder', {
+                const response = (await this.krakenClient.api('AddOrder', {
                     pair: config.assetPair,
                     type: 'buy',
                     ordertype: 'limit',
@@ -33,10 +34,15 @@ class Kraken {
                     price,
                     expiretm: `+30`,
                     oflags: config.exchange.forceMaker ? 'post' : undefined
-                })).result;
-                const txid = result.txid;
+                }).catch((error) => {
+                    if (error.message === 'General:Invalid arguments:volume') return null;
+                    else throw error;
+                }));
+                if (!repsonse) return null;
+                const result = response.result;
+                await util.sleep(50);
 
-                return {txid, price, volume, cost};
+                return {txid: result.txid, price, volume, cost};
             } else {
                 if (!currentBalance[config.baseAsset]) return null;
 
@@ -55,15 +61,16 @@ class Kraken {
                     expiretm: `+30`,
                     oflags: config.exchange.forceMaker ? 'post' : undefined
                 })).result;
-                const txid = result.txid;
-
-                return {txid, price, volume, cost};
+                await util.sleep(50);
+                
+                return {txid: result.txid, price, volume, cost};
             }
         }
     }
 
     async getBalance() {
         const result = (await this.krakenClient.api('Balance', {})).result;
+        await util.sleep(50);
         
         let entries = Object.entries(result);
         entries = entries.filter((pair) => [config.baseAsset, config.quoteAsset].includes(pair[0]));
@@ -74,7 +81,9 @@ class Kraken {
     }
 
     async getTickerInfo(pair) {
-        return (await this.krakenClient.api('Ticker', {pair: pair ? pair : config.assetPair})).result[pair ? pair : config.assetPair];
+        const result = (await this.krakenClient.api('Ticker', {pair: pair ? pair : config.assetPair})).result[pair ? pair : config.assetPair];
+        await util.sleep(50);
+        return result;
     }
 }
 

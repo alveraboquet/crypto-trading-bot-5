@@ -38,6 +38,10 @@ class Order {
     }
 }
 
+async function sleep(ms) {
+    return new Promise((res, rej) => setTimeout(res, ms));
+}
+
 function formatDate(date) {
     return `${date.toISOString().slice(0, 10)} ${date.toTimeString().slice(0, 17)}`;
 }
@@ -45,5 +49,6 @@ function formatDate(date) {
 module.exports = {
     Period,
     Order,
+    sleep,
     formatDate
 };
