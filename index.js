@@ -14,23 +14,15 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 async function loop(currentTimestamp) {
-    console.log('loop start');
 
     const data = await source.getData();
     const score = getScore(data, data.length - 1, ...config.scoring.args);
 
-    console.log(`score ${score}`);
-
     if (score === 0) {
-        console.log('holding');
         if (config.logging.logHoldDecisions) console.log(`Held ${config.assetPair} [${util.formatDate(new Date(currentTimestamp))}]`);
     } else {
-        console.log('ordering');
-
         const orderInfo = await exchange.placeOrder(score);
         if (!orderInfo) return;
-
-        console.log('order placed');
         
         const order = new util.Order(
             orderInfo.txid,
@@ -51,10 +43,10 @@ async function loop(currentTimestamp) {
         order.description = `${order.action === 'buy' ? 'Bought' : 'Sold'} ${order.volume} @ ${order.price} ${order.pair} (${order.score.toFixed(2)}) [${util.formatDate(new Date(order.timestamp))}]`;
         console.log(order.description);
 
-        mongoClient.db('cryptoScalpingBot').collection('orders').insertOne(order).catch(async (error) => {
+        mongoClient.db('cryptoTradingBot').collection('orders').insertOne(order).catch(async (error) => {
             if (error instanceof MongoDriverError && error.message === 'MongoClient must be connected to perform this operation') {
                 await mongoClient.db('admin').command({ping: 1});
-                mongoClient.db('cryptoScalpingBot').collection('orders').insertOne(order);
+                mongoClient.db('cryptoTradingBot').collection('orders').insertOne(order);
             }
         });
     }
@@ -91,7 +83,6 @@ async function run() {
 
     let currentTimestamp = nextPeriodStart;
     setTimeout(() => {
-        console.log('running');
         loop(currentTimestamp);
         loopInterval = setInterval(() => {
             currentTimestamp += config.periodInterval * 60000;
