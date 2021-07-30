@@ -1,9 +1,9 @@
 // Utility functions
-function calculateSMA(data, numPeriods, targetIndex, source = 'close') {
+function calculateSMA(data, targetIndex, numPeriods, source = 'close') {
     targetIndex = targetIndex ?? data.length - 1;
 
-    if (numPeriods <= 0) throw new RangeError('Num. periods parameter out of range!');
     if (targetIndex >= data.length) throw new RangeError('Target index out of range.');
+    if (numPeriods <= 0) throw new RangeError('Num. periods parameter out of range!');
     if (targetIndex - numPeriods + 1 < 0) throw new RangeError('Not enough data provided for the number of periods specified!');
     if (!['open', 'high', 'low', 'close'].includes(source)) throw new Error(`Source parameter (${JSON.stringify(source)}) is invalid!`);
 
@@ -15,11 +15,11 @@ function calculateSMA(data, numPeriods, targetIndex, source = 'close') {
     return mean;
 }
 
-function calculateEMA(data, numPeriods, targetIndex, smoothing = 2, source = 'close') {
+function calculateEMA(data, targetIndex, numPeriods, smoothing = 2, source = 'close') {
     targetIndex = targetIndex ?? data.length - 1;
 
-    if (numPeriods <= 0) throw new RangeError('Num. periods parameter out of range!');
     if (targetIndex >= data.length || targetIndex < 0) throw new RangeError('Target index out of range!');
+    if (numPeriods <= 0) throw new RangeError('Num. periods parameter out of range!');
     if (targetIndex - (numPeriods * 2) + 1 < 0) throw new RangeError('Not enough data provided for the number of periods specified!');
     if (smoothing <= 0) throw new RangeError('Smoothing parameter out of range!');
     if (!['open', 'high', 'low', 'close'].includes(source)) throw new Error(`Source parameter (${JSON.stringify(source)}) is invalid!`);
@@ -27,16 +27,16 @@ function calculateEMA(data, numPeriods, targetIndex, smoothing = 2, source = 'cl
     const dataSlice = data.slice(targetIndex - numPeriods + 1, targetIndex + 1);
     
     const multiplier = smoothing / (numPeriods + 1);
-    const result = dataSlice.reduce((p, c) => ((c.ohlc[source] - p) * multiplier) + p, calculateSMA(data, numPeriods, targetIndex - numPeriods, source));
+    const result = dataSlice.reduce((p, c) => ((c.ohlc[source] - p) * multiplier) + p, calculateSMA(data, targetIndex - numPeriods, numPeriods, source));
 
     return result;
 }
 
-function calculateStochasticK(data, numPeriods, targetIndex, source = 'close') {
+function calculateFastStochasticK(data, targetIndex, numPeriods, source = 'close') {
     targetIndex = targetIndex ?? data.length - 1;
 
-    if (numPeriods <= 0) throw new RangeError('Num. periods parameter out of range!');
     if (targetIndex >= data.length || targetIndex < 0) throw new RangeError('Target index out of range!');
+    if (numPeriods <= 0) throw new RangeError('Num. periods parameter out of range!');
     if (targetIndex - numPeriods + 1 < 0) throw new RangeError('Not enough data provided for the number of periods specified!');
     if (!['open', 'high', 'low', 'close'].includes(source)) throw new Error(`Source parameter (${JSON.stringify(source)}) is invalid!`);
 
@@ -52,17 +52,59 @@ function calculateStochasticK(data, numPeriods, targetIndex, source = 'close') {
     return result;
 }
 
-function calculateStochasticD(data, numKPeriods, numDPeriods, targetIndex) {
+function calculateSlowStochasticK(data, targetIndex, numPeriods, smoothing = 3, source = 'close') {
     targetIndex = targetIndex ?? data.length - 1;
 
-    if (numKPeriods <= 0) throw new RangeError('Num. K periods parameter out of range!');
-    if (numDPeriods <= 0) throw new RangeError('Num. D periods parameter out of range!');
     if (targetIndex >= data.length || targetIndex < 0) throw new RangeError('Target index out of range!');
+    if (numPeriods <= 0) throw new RangeError('Num. periods parameter out of range!');
+    if (targetIndex - (numPeriods + smoothing) + 1 < 0) throw new RangeError('Not enough data provided for the number of periods specified!');
+    if (smoothing <= 0) throw new RangeError('Smoothing parameter out of range!');
+    if (!['open', 'high', 'low', 'close'].includes(source)) throw new Error(`Source parameter (${JSON.stringify(source)}) is invalid!`);
+
+    const fastSlice = [];
+    for (let i = targetIndex; i > targetIndex - smoothing; i--) {
+        fastSlice.push(calculateFastStochasticK(data, i, numPeriods));
+    }
+
+    const sum = fastSlice.reduce((p, c) => p + c, 0);
+    const mean = sum / fastSlice.length;
+
+    return mean;
+}
+
+function calculateFastStochasticD(data, targetIndex, numKPeriods, numDPeriods, source = 'close') {
+    targetIndex = targetIndex ?? data.length - 1;
+
+    if (targetIndex >= data.length || targetIndex < 0) throw new RangeError('Target index out of range!');
+    if (numKPeriods <= 0) throw new RangeError('Num. %K periods parameter out of range!');
+    if (numDPeriods <= 0) throw new RangeError('Num. %D periods parameter out of range!');
     if (targetIndex - (numKPeriods + numDPeriods) + 1 < 0) throw new RangeError('Not enough data provided for the number of periods specified!');
+    if (!['open', 'high', 'low', 'close'].includes(source)) throw new Error(`Source parameter (${JSON.stringify(source)}) is invalid!`);
 
     const kSlice = [];
     for (let i = targetIndex; i > targetIndex - numDPeriods; i--) {
-        kSlice.push(calculateStochasticK(data, numKPeriods, i));
+        kSlice.push(calculateFastStochasticK(data, i, numPeriods, source));
+    }
+
+    const sum = kSlice.reduce((p, c) => p + c, 0);
+    const mean = sum / kSlice.length;
+
+    return mean;
+}
+
+function calculateSlowStochasticD(data, targetIndex, numKPeriods, numDPeriods, kSmoothing = 3, source = 'close') {
+    targetIndex = targetIndex ?? data.length - 1;
+
+    if (targetIndex >= data.length || targetIndex < 0) throw new RangeError('Target index out of range!');
+    if (numKPeriods <= 0) throw new RangeError('Num. %K periods parameter out of range!');
+    if (numDPeriods <= 0) throw new RangeError('Num. %D periods parameter out of range!');
+    if (targetIndex - (numKPeriods + numDPeriods + smoothing) + 1 < 0) throw new RangeError('Not enough data provided for the number of periods specified!');
+    if (kSmoothing <= 0) throw new RangeError('%K smoothing parameter out of range!');
+    if (!['open', 'high', 'low', 'close'].includes(source)) throw new Error(`Source parameter (${JSON.stringify(source)}) is invalid!`);
+
+    const kSlice = [];
+    for (let i = targetIndex; i > targetIndex - numDPeriods; i--) {
+        kSlice.push(calculateSlowStochasticK(data, i, numPeriods, smoothing, source));
     }
 
     const sum = kSlice.reduce((p, c) => p + c, 0);
@@ -90,8 +132,8 @@ function calculateTrueRange(data, targetIndex) {
 function calculateATR(data, targetIndex, numPeriods) {
     targetIndex = targetIndex ?? data.length - 1;
 
-    if (numPeriods <= 0) throw new RangeError('Num. periods parameter out of range!');
     if (targetIndex >= data.length || targetIndex < 0) throw new RangeError('Target index out of range!');
+    if (numPeriods <= 0) throw new RangeError('Num. periods parameter out of range!');
     if (targetIndex - numPeriods < 0) throw new RangeError('Not enough data provided for the number of periods specified!');
 
     const trueRanges = [];
@@ -119,16 +161,16 @@ function candleTypeScore(data, targetIndex) {
 function emaScore(data, targetIndex, numPeriods, smoothing = 2, source = 'close') {
     targetIndex = targetIndex ?? data.length - 1;
 
-    if (numPeriods.some((x) => x <= 0)) throw new RangeError('Num. periods parameter out of range!');
     if (targetIndex >= data.length || targetIndex < 1) throw new RangeError('Target index out of range!');
+    if (numPeriods.some((x) => x <= 0)) throw new RangeError('Num. periods parameter out of range!');
     if (numPeriods.some((x) => targetIndex - (x * 2) < 0)) throw new RangeError('Not enough data provided for the number of periods specified!');
     if (smoothing <= 0) throw new RangeError('Smoothing parameter out of range!');
     if (!['open', 'high', 'low', 'close'].includes(source)) throw new Error(`Source parameter (${JSON.stringify(source)}) is invalid!`);
 
     const emaValues = numPeriods.map((n) => {
         return {
-            previous: calculateEMA(data, n, targetIndex - 1, smoothing, source),
-            current: calculateEMA(data, n, targetIndex, smoothing, source)
+            previous: calculateEMA(data, targetIndex - 1, n, smoothing, source),
+            current: calculateEMA(data, targetIndex, n, smoothing, source)
         };
     });
 
@@ -144,23 +186,68 @@ function emaScore(data, targetIndex, numPeriods, smoothing = 2, source = 'close'
     return score;
 }
 
-function stochasticScore(data, targetIndex, numKPeriods, numDPeriods, overboughtLevel, oversoldLevel, source = 'close') {
+function fastStochasticScore(data, targetIndex, numKPeriods, numDPeriods, overboughtLevel, oversoldLevel, source = 'close') {
     targetIndex = targetIndex ?? data.length - 1;
 
+    if (targetIndex >= data.length || targetIndex < 1) throw new RangeError('Target index out of range!');
     if (numKPeriods <= 0) throw new RangeError('Num. %K periods parameter out of range!');
     if (numDPeriods <= 0) throw new RangeError('Num. %D periods parameter out of range!');
-    if (targetIndex >= data.length || targetIndex < 1) throw new RangeError('Target index out of range!');
     if (targetIndex - (numKPeriods + numDPeriods) < 0) throw new RangeError('Not enough data provided for the number of periods specified!');
     if (!['open', 'high', 'low', 'close'].includes(source)) throw new Error(`Source parameter (${JSON.stringify(source)}) is invalid!`);
 
     const kValues = {
-        previous: calculateStochasticK(data, numKPeriods, targetIndex - 1, source),
-        current: calculateStochasticK(data, numKPeriods, targetIndex, source)
+        previous: calculateFastStochasticK(data, targetIndex - 1, numKPeriods, source),
+        current: calculateFastStochasticK(data, targetIndex, numKPeriods, source)
     };
 
     const dValues = {
-        previous: calculateStochasticD(data, numKPeriods, numDPeriods, targetIndex - 1),
-        current: calculateStochasticD(data, numKPeriods, numDPeriods, targetIndex)
+        previous: calculateFastStochasticD(data, targetIndex - 1, numKPeriods, numDPeriods, source),
+        current: calculateFastStochasticD(data, targetIndex, numKPeriods, numDPeriods, source)
+    };
+
+    let score = 0;
+
+    if (kValues.previous <= dValues.previous && kValues.current > dValues.current) {
+        score += 0.5;
+    } else if (kValues.previous > dValues.previous && kValues.current <= dValues.current) {
+        score += -0.5;
+    }
+
+    if (kValues.previous <= overboughtLevel && kValues.current > overboughtLevel) {
+        score += 0.5;
+    } else if (kValues.previoous > oversoldLevel && kValues.current <= oversoldLevel) {
+        score += 0.5;
+    }
+
+    if (kValues.current > overboughtLevel) {
+        if (score <= -0.25) score += 0.25;
+        else if (score < 0) score = 0;
+    } else if (kValues.current <= oversoldLevel) {
+        if (score >= 0.25) score -= 0.25;
+        else if (score > 0) score = 0;
+    }
+
+    return score;
+}
+
+function slowStochasticScore(data, targetIndex, numKPeriods, numDPeriods, smoothing, overboughtLevel, oversoldLevel, source = 'close') {
+    targetIndex = targetIndex ?? data.length - 1;
+
+    if (targetIndex >= data.length || targetIndex < 1) throw new RangeError('Target index out of range!');
+    if (numKPeriods <= 0) throw new RangeError('Num. %K periods parameter out of range!');
+    if (numDPeriods <= 0) throw new RangeError('Num. %D periods parameter out of range!');
+    if (smoothing <= 0) throw new RangeError('Smoothing parameter out of range!');
+    if (targetIndex - (numKPeriods + numDPeriods) < 0) throw new RangeError('Not enough data provided for the number of periods specified!');
+    if (!['open', 'high', 'low', 'close'].includes(source)) throw new Error(`Source parameter (${JSON.stringify(source)}) is invalid!`);
+
+    const kValues = {
+        previous: calculateSlowStochasticK(data, targetIndex - 1, numKPeriods, smoothing, source),
+        current: calculateSlowStochasticK(data, targetIndex, numKPeriods, smoothing, source)
+    };
+
+    const dValues = {
+        previous: calculateSlowStochasticD(data, targetIndex - 1, numKPeriods, numDPeriods, smoothing, source),
+        current: calculateSlowStochasticD(data, targetIndex, numKPeriods, numDPeriods, smoothing, source)
     };
 
     let score = 0;
@@ -208,12 +295,15 @@ function combineScoreFunctions(functions) {
 module.exports = {
     calculateSMA,
     calculateEMA,
-    calculateStochasticK,
-    calculateStochasticD,
+    calculateFastStochasticK,
+    calculateSlowStochasticK,
+    calculateFastStochasticD,
+    calculateSlowStochasticD,
     calculateTrueRange,
     calculateATR,
     candleTypeScore,
     emaScore,
-    stochasticScore,
+    fastStochasticScore,
+    slowStochasticScore,
     combineScoreFunctions
 };

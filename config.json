@@ -26,11 +26,16 @@
             {
                 "functionName": "emaScore",
                 "args": [[3, 6, 9], 2, "close"],
-                "weight": 0.6
+                "weight": 0.5
             },
             {
-                "functionName": "stochasticScore",
+                "functionName": "fastStochasticScore",
                 "args": [14, 3, 80, 20, "close"],
+                "weight": 0.1
+            },
+            {
+                "functionName": "slowStochasticScore",
+                "args": [14, 3, 3, 80, 20, "close"],
                 "weight": 0.3
             }
         ]
