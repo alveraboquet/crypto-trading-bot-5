@@ -106,6 +106,16 @@ function calculateATR(data, targetIndex, numPeriods) {
 }
 
 // Score functions
+function candleTypeScore(data, targetIndex) {
+    targetIndex = targetIndex ?? data.length - 1;
+    if (targetIndex >= data.length || targetIndex < 1) throw new RangeError('Target index out of range!');
+
+    const period = data[targetIndex];
+    if (period.ohlc.open < period.ohlc.close) return 1;
+    else if (period.ohlc.open > period.ohlc.close) return -1;
+    else return 0;
+}
+
 function emaScore(data, targetIndex, numPeriods, smoothing = 2, source = 'close') {
     targetIndex = targetIndex ?? data.length - 1;
 
@@ -202,6 +212,7 @@ module.exports = {
     calculateStochasticD,
     calculateTrueRange,
     calculateATR,
+    candleTypeScore,
     emaScore,
     stochasticScore,
     combineScoreFunctions
