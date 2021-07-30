@@ -4,6 +4,7 @@
     "quoteAsset": "USDT",
     "assetPair": "XBTUSDT",
     "periodInterval": 5,
+    "checksPerPeriod": 2,
     "logging": {
         "logHoldDecisions": true,
         "valueCurrency": "GBP",
@@ -42,7 +43,7 @@
     },
     "source": {
         "name": "Kraken",
-        "minDataLength": 20
+        "minDataLength": 30
     },
     "exchange": {
         "name": "Kraken",

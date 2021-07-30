@@ -13,8 +13,10 @@ if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config();
 }
 
-async function loop(currentTimestamp) {
-    const data = await source.getData();
+async function loop(currentTimestamp, includeCurrentPeriod) {
+    if (stopped) return;
+
+    const data = await source.getData(includeCurrentPeriod);
     const score = getScore(data);
 
     if (score === 0) {
@@ -24,6 +26,7 @@ async function loop(currentTimestamp) {
         if (orderInfo) {
             const order = new util.Order(
                 orderInfo.txid,
+                config.exchange.name,
                 currentTimestamp,
                 config.periodInterval,
                 config.assetPair,
@@ -76,9 +79,11 @@ async function loop(currentTimestamp) {
     });
 }
 
+let stopped = false;
 function stop() {
     mongoClient.close();
     clearInterval(loopInterval);
+    stopped = true;
 }
 
 process.on('SIGINT', stop);
@@ -107,11 +112,13 @@ async function run() {
 
     let currentTimestamp = nextPeriodStart;
     setTimeout(() => {
-        loop(currentTimestamp);
+        loop(currentTimestamp, false);
+
+        let i = 0;
         loopInterval = setInterval(() => {
-            currentTimestamp += config.periodInterval * 60000;
-            loop(currentTimestamp);
-        }, config.periodInterval * 60000);
+            currentTimestamp += (config.periodInterval / config.checksPerPeriod) * 60000;
+            loop(currentTimestamp, i % config.checksPerPeriod !== 0);
+        }, (config.periodInterval / config.checksPerPeriod) * 60000);
     }, nextPeriodStart - Date.now());
 }
 

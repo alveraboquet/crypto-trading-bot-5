@@ -83,7 +83,7 @@ function calculateFastStochasticD(data, targetIndex, numKPeriods, numDPeriods, s
 
     const kSlice = [];
     for (let i = targetIndex; i > targetIndex - numDPeriods; i--) {
-        kSlice.push(calculateFastStochasticK(data, i, numPeriods, source));
+        kSlice.push(calculateFastStochasticK(data, i, numKPeriods, source));
     }
 
     const sum = kSlice.reduce((p, c) => p + c, 0);
@@ -98,13 +98,13 @@ function calculateSlowStochasticD(data, targetIndex, numKPeriods, numDPeriods, k
     if (targetIndex >= data.length || targetIndex < 0) throw new RangeError('Target index out of range!');
     if (numKPeriods <= 0) throw new RangeError('Num. %K periods parameter out of range!');
     if (numDPeriods <= 0) throw new RangeError('Num. %D periods parameter out of range!');
-    if (targetIndex - (numKPeriods + numDPeriods + smoothing) + 1 < 0) throw new RangeError('Not enough data provided for the number of periods specified!');
+    if (targetIndex - (numKPeriods + numDPeriods + kSmoothing) + 1 < 0) throw new RangeError('Not enough data provided for the number of periods specified!');
     if (kSmoothing <= 0) throw new RangeError('%K smoothing parameter out of range!');
     if (!['open', 'high', 'low', 'close'].includes(source)) throw new Error(`Source parameter (${JSON.stringify(source)}) is invalid!`);
 
     const kSlice = [];
     for (let i = targetIndex; i > targetIndex - numDPeriods; i--) {
-        kSlice.push(calculateSlowStochasticK(data, i, numPeriods, smoothing, source));
+        kSlice.push(calculateSlowStochasticK(data, i, numKPeriods, kSmoothing, source));
     }
 
     const sum = kSlice.reduce((p, c) => p + c, 0);

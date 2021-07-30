@@ -5,30 +5,20 @@ const KrakenClient = require('kraken-api');
 
 class Kraken {
     krakenClient;
-    msPeriodInterval;
-    currentData;
 
     constructor() {
         this.krakenClient = new KrakenClient(process.env.KRAKEN_KEY, process.env.KRAKEN_SECRET);
-        this.msPeriodInterval = config.periodInterval * 60000;
     }
 
-    async getData() {
-        if (this.currentData && Math.floor(Date.now() / this.msPeriodInterval) * this.msPeriodInterval === this.currentData[this.currentData.length - 1].timestamp) {
-            return this.currentData;
-        } else {
-            await this.updateData();
-            return this.currentData;
-        }
-    }
-
-    async updateData() {
-        const since = Math.floor((Date.now() - (config.source.minDataLength * this.msPeriodInterval)) / 1000);
+    async getData(includeCurrentPeriod) {
+        const since = Math.floor((Date.now() - (config.source.minDataLength * config.periodInterval * 60000)) / 1000);
         const response = (await this.krakenClient.api('OHLC', {pair: config.assetPair, interval: config.periodInterval, since}));
         await util.sleep(100);
-        const rawData = Object.entries(response.result).filter((pair) => pair[0] !== 'last')[0][1].slice(0, -1);
 
-        const newData = rawData.map((periodData) => {
+        let rawData = Object.entries(response.result).filter((pair) => pair[0] !== 'last')[0][1];
+        if (!includeCurrentPeriod) rawData = rawData.slice(0, -1);
+
+        const parsedData = rawData.map((periodData) => {
             return new util.Period(periodData[0] * 1000, {
                 open: parseFloat(periodData[1]),
                 high: parseFloat(periodData[2]),
@@ -36,7 +26,8 @@ class Kraken {
                 close: parseFloat(periodData[4])
             });
         });
-        this.currentData = newData.slice(newData.length > config.source.minDataLength ? newData.length - config.source.minDataLength : 0);
+
+        return parsedData.slice(parsedData.length > config.source.minDataLength ? parsedData.length - config.source.minDataLength : 0);
     }
 }
 
