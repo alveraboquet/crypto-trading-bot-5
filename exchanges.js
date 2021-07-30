@@ -17,26 +17,36 @@ class Kraken {
             const currentBalance = await this.getBalance();
             const tickerInfo = await this.getTickerInfo();
 
+            const totalValueInBase = currentBalance[config.baseAsset] + (currentBalance[config.quoteAsset] / tickerInfo.c[0]);
+            const balanceRatio = currentBalance[config.baseAsset] / totalValueInBase;
+            
+            let targetRatio = balanceRatio + score;
+            if (targetRatio > 1) targetRatio = 1;
+            else if (targetRatio < 0) targetRatio = 0;
+
             if (score > 0) {
                 if (!currentBalance[config.quoteAsset]) return null;
 
-                const price = Math.floor((parseFloat(tickerInfo.a[0]) + (config.exchange.forceMaker ? config.exchange.makerMargin : config.exchange.takerMargin)) * (10 ** config.exchange.pricePrecision)) / (10 ** config.exchange.pricePrecision);
-                const cost = Math.floor((currentBalance[config.quoteAsset] * score) * (10 ** config.exchange.quotePrecision)) / (10 ** config.exchange.quotePrecision);
+                const multiplier = (targetRatio - balanceRatio) * (1 / (1 - balanceRatio));
+                const price = Math.floor(parseFloat(tickerInfo.a[0]) * (10 ** config.exchange.pricePrecision)) / (10 ** config.exchange.pricePrecision);
+                const cost = Math.floor((currentBalance[config.quoteAsset] * multiplier) * (10 ** config.exchange.quotePrecision)) / (10 ** config.exchange.quotePrecision);
                 const volume = Math.floor((cost / price) * (10 ** config.exchange.basePrecision)) / (10 ** config.exchange.basePrecision);
 
                 if (cost < config.exchange.quoteMinimumTransaction) return null;
 
+                const orderData = {
+                    pair: config.assetPair,
+                    type: 'buy',
+                    ordertype: 'limit',
+                    volume,
+                    price,
+                    expiretm: `+30`,
+                    oflags: config.exchange.forceMaker ? 'post' : undefined
+                };
+
                 let response;
                 async function getResponse(ctx) {
-                    response = (await ctx.krakenClient.api('AddOrder', {
-                        pair: config.assetPair,
-                        type: 'buy',
-                        ordertype: 'limit',
-                        volume,
-                        price,
-                        expiretm: `+30`,
-                        oflags: config.exchange.forceMaker ? 'post' : undefined
-                    }).catch((error) => {
+                    response = (await ctx.krakenClient.api('AddOrder', orderData).catch((error) => {
                         if (error.message === 'General:Invalid arguments:volume') return null;
                         else if (error.message === 'Order:Insufficient funds') return null;
                         else if (error.message === 'API:Invalid nonce') getResponse(ctx);
@@ -57,23 +67,26 @@ class Kraken {
             } else {
                 if (!currentBalance[config.baseAsset]) return null;
 
-                const price = Math.floor((parseFloat(tickerInfo.b[0]) - (config.exchange.forceMaker ? config.exchange.makerMargin : config.exchange.takerMargin)) * (10 ** config.exchange.pricePrecision)) / (10 ** config.exchange.pricePrecision);
-                const volume = Math.floor((currentBalance[config.baseAsset] * -score) * (10 ** config.exchange.basePrecision)) / (10 ** config.exchange.basePrecision);
+                const multiplier = (balanceRatio - targetRatio) * (1 / balanceRatio);
+                const price = Math.floor(parseFloat(tickerInfo.b[0]) * (10 ** config.exchange.pricePrecision)) / (10 ** config.exchange.pricePrecision);
+                const volume = Math.floor((currentBalance[config.baseAsset] * multiplier) * (10 ** config.exchange.basePrecision)) / (10 ** config.exchange.basePrecision);
                 const cost = Math.floor((volume * price) * (10 ** config.exchange.quotePrecision)) / (10 ** config.exchange.quotePrecision);
 
                 if (volume < config.exchange.baseMinimumTransaction) return null;
 
+                const orderData = {
+                    pair: config.assetPair,
+                    type: 'sell',
+                    ordertype: 'limit',
+                    volume: volume,
+                    price: price,
+                    expiretm: `+30`,
+                    oflags: config.exchange.forceMaker ? 'post' : undefined
+                };
+
                 let response;
                 async function getResponse(ctx) {
-                    response = (await ctx.krakenClient.api('AddOrder', {
-                        pair: config.assetPair,
-                        type: 'sell',
-                        ordertype: 'limit',
-                        volume: volume,
-                        price: price,
-                        expiretm: `+30`,
-                        oflags: config.exchange.forceMaker ? 'post' : undefined
-                    }).catch((error) => {
+                    response = (await ctx.krakenClient.api('AddOrder', orderData).catch((error) => {
                         if (error.message === 'General:Invalid arguments:volume') return null;
                         else if (error.message === 'Order:Insufficient funds') return null;
                         else if (error.message === 'API:Invalid nonce') getResponse(ctx);

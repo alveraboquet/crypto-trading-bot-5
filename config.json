@@ -41,8 +41,6 @@
         "basePrecision": 8,
         "quoteMinimumTransaction": 5,
         "quotePrecision": 2,
-        "forceMaker": false,
-        "takerMargin": 0,
-        "makerMargin": 4
+        "forceMaker": false
     }
 }
