@@ -16,6 +16,7 @@ if (process.env.NODE_ENV !== 'production') {
 async function loop(currentTimestamp) {
     const data = await source.getData();
     const score = getScore(data);
+
     if (score === 0) {
         if (config.logging.logHoldDecisions) console.log(`Held ${config.assetPair} (${score}) [${util.formatDate(new Date(currentTimestamp))}]`);
     } else {

@@ -42,8 +42,8 @@
         "quoteMinimumTransaction": 5,
         "quotePrecision": 2,
         "forceMaker": false,
-        "scoreThreshold": 0.15,
-        "atrBuyThreshold": 50,
+        "scoreThreshold": 0.10,
+        "atrBuyThreshold": 40,
         "atrArgs": [3]
     }
 }

@@ -196,6 +196,11 @@ function combineScoreFunctions(functions) {
 }
 
 module.exports = {
+    calculateSMA,
+    calculateEMA,
+    calculateStochasticK,
+    calculateStochasticD,
+    calculateTrueRange,
     calculateATR,
     emaScore,
     stochasticScore,
