@@ -1,5 +1,6 @@
 const config = require('./config.json');
 const util = require('./util.js');
+const analysis = require('./analysis.js');
 
 const KrakenClient = require('kraken-api');
 
@@ -10,10 +11,12 @@ class Kraken {
         this.krakenClient = new KrakenClient(process.env.KRAKEN_KEY, process.env.KRAKEN_SECRET);
     }
 
-    async placeOrder(score) {
+    async placeOrder(data, score) {
         if (score === 0) {
             throw new Error('Specified score is invalid!');
         } else {
+            if (Math.abs(score) < config.exchange.scoreThreshold) return null;
+
             const currentBalance = await this.getBalance();
             const tickerInfo = await this.getTickerInfo();
 
@@ -26,6 +29,7 @@ class Kraken {
 
             if (score > 0) {
                 if (!currentBalance[config.quoteAsset]) return null;
+                if (analysis.calculateATR(data, data.length - 1, ...config.exchange.atrArgs) < config.exchange.atrBuyThreshold) return null;
 
                 const multiplier = (targetRatio - balanceRatio) * (1 / (1 - balanceRatio));
                 const price = Math.floor(parseFloat(tickerInfo.a[0]) * (10 ** config.exchange.pricePrecision)) / (10 ** config.exchange.pricePrecision);

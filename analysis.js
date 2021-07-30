@@ -71,6 +71,40 @@ function calculateStochasticD(data, numKPeriods, numDPeriods, targetIndex) {
     return mean;
 }
 
+function calculateTrueRange(data, targetIndex) {
+    targetIndex = targetIndex ?? data.length - 1;
+
+    if (targetIndex >= data.length || targetIndex < 0) throw new RangeError('Target index out of range!');
+    if (targetIndex - 1 < 0) throw new RangeError('Not enough data provided!');
+
+    const current = data[targetIndex];
+    const previous = data[targetIndex - 1];
+
+    return Math.max(
+        current.ohlc.high - current.ohlc.low,
+        Math.abs(current.ohlc.high - previous.ohlc.close),
+        Math.abs(current.ohlc.low - previous.ohlc.close)
+    );
+}
+
+function calculateATR(data, targetIndex, numPeriods) {
+    targetIndex = targetIndex ?? data.length - 1;
+
+    if (numPeriods <= 0) throw new RangeError('Num. periods parameter out of range!');
+    if (targetIndex >= data.length || targetIndex < 0) throw new RangeError('Target index out of range!');
+    if (targetIndex - numPeriods < 0) throw new RangeError('Not enough data provided for the number of periods specified!');
+
+    const trueRanges = [];
+    for (let i = targetIndex - numPeriods + 1; i < targetIndex + 1; i++) {
+        trueRanges.push(calculateTrueRange(data, i));
+    }
+
+    const sum = trueRanges.reduce((p, c) => p + c, 0);
+    const mean = sum / trueRanges.length;
+
+    return mean;
+}
+
 // Score functions
 function emaScore(data, targetIndex, numPeriods, smoothing = 2, source = 'close') {
     targetIndex = targetIndex ?? data.length - 1;
@@ -162,6 +196,7 @@ function combineScoreFunctions(functions) {
 }
 
 module.exports = {
+    calculateATR,
     emaScore,
     stochasticScore,
     combineScoreFunctions

@@ -19,7 +19,7 @@ async function loop(currentTimestamp) {
     if (score === 0) {
         if (config.logging.logHoldDecisions) console.log(`Held ${config.assetPair} (${score}) [${util.formatDate(new Date(currentTimestamp))}]`);
     } else {
-        const orderInfo = await exchange.placeOrder(score);
+        const orderInfo = await exchange.placeOrder(data, score);
         if (orderInfo) {
             const order = new util.Order(
                 orderInfo.txid,
