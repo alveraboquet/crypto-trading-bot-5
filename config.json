@@ -1,14 +1,14 @@
 {
     "mongoUrl": "mongodb://localhost:27017",
-    "baseAsset": "XETH",
+    "baseAsset": "XXBT",
     "quoteAsset": "USDT",
-    "assetPair": "ETHUSDT",
-    "periodInterval": 1,
+    "assetPair": "XBTUSDT",
+    "periodInterval": 5,
     "logging": {
         "logHoldDecisions": true,
         "valueCurrency": "GBP",
         "baseValueTicker": {
-            "name": "XETHZGBP",
+            "name": "XXBTZGBP",
             "baseIsValueCurrency": false
         },
         "quoteValueTicker": {
@@ -36,13 +36,13 @@
     },
     "exchange": {
         "name": "Kraken",
-        "pricePrecision": 2,
-        "baseMinimumTransaction": 0.004,
+        "pricePrecision": 1,
+        "baseMinimumTransaction": 0.0002,
         "basePrecision": 8,
-        "quoteMinimumTransaction": 15,
+        "quoteMinimumTransaction": 5,
         "quotePrecision": 2,
         "forceMaker": false,
-        "takerMargin": 1,
-        "makerMargin": 2
+        "takerMargin": 0,
+        "makerMargin": 4
     }
 }

@@ -26,17 +26,29 @@ class Kraken {
 
                 if (cost < config.exchange.quoteMinimumTransaction) return null;
 
-                const response = (await this.krakenClient.api('AddOrder', {
-                    pair: config.assetPair,
-                    type: 'buy',
-                    ordertype: 'limit',
-                    volume,
-                    price,
-                    expiretm: `+30`,
-                    oflags: config.exchange.forceMaker ? 'post' : undefined
-                }).catch((error) => {
-                    if (error.message === 'General:Invalid arguments:volume') return null;
-                    else throw error;
+                let response;
+                async function getResponse(ctx) {
+                    response = (await ctx.krakenClient.api('AddOrder', {
+                        pair: config.assetPair,
+                        type: 'buy',
+                        ordertype: 'limit',
+                        volume,
+                        price,
+                        expiretm: `+30`,
+                        oflags: config.exchange.forceMaker ? 'post' : undefined
+                    }).catch((error) => {
+                        if (error.message === 'General:Invalid arguments:volume') return null;
+                        else if (error.message === 'Order:Insufficient funds') return null;
+                        else if (error.message === 'API:Invalid nonce') getResponse(ctx);
+                        else throw error;
+                    }));
+                }
+                getResponse(this);
+                await (new Promise(async (res, rej) => {
+                    while (response === undefined) {
+                        await util.sleep(10)
+                    }
+                    res();
                 }));
                 if (!response) return null;
                 await util.sleep(100);
@@ -51,17 +63,29 @@ class Kraken {
 
                 if (volume < config.exchange.baseMinimumTransaction) return null;
 
-                const response = (await this.krakenClient.api('AddOrder', {
-                    pair: config.assetPair,
-                    type: 'sell',
-                    ordertype: 'limit',
-                    volume: volume,
-                    price: price,
-                    expiretm: `+30`,
-                    oflags: config.exchange.forceMaker ? 'post' : undefined
-                }).catch((error) => {
-                    if (error.message === 'General:Invalid arguments:volume') return null;
-                    else throw error;
+                let response;
+                async function getResponse(ctx) {
+                    response = (await ctx.krakenClient.api('AddOrder', {
+                        pair: config.assetPair,
+                        type: 'sell',
+                        ordertype: 'limit',
+                        volume: volume,
+                        price: price,
+                        expiretm: `+30`,
+                        oflags: config.exchange.forceMaker ? 'post' : undefined
+                    }).catch((error) => {
+                        if (error.message === 'General:Invalid arguments:volume') return null;
+                        else if (error.message === 'Order:Insufficient funds') return null;
+                        else if (error.message === 'API:Invalid nonce') getResponse(ctx);
+                        else throw error;
+                    }));
+                }
+                getResponse(this);
+                await (new Promise(async (res, rej) => {
+                    while (response === undefined) {
+                        await util.sleep(10)
+                    }
+                    res();
                 }));
                 if (!response) return null;
                 await util.sleep(100);
@@ -72,7 +96,20 @@ class Kraken {
     }
 
     async getBalance() {
-        const result = (await this.krakenClient.api('Balance', {})).result;
+        let result;
+        async function getResult(ctx) {
+            result = (await ctx.krakenClient.api('Balance', {}).catch((error) => {
+                if (error.message === 'API:Invalid nonce') getResult(ctx);
+                else throw error;
+            })).result;
+        }
+        getResult(this);
+        await (new Promise(async (res, rej) => {
+            while (!result) {
+                await util.sleep(10)
+            }
+            res();
+        }));
         await util.sleep(100);
         
         let entries = Object.entries(result);
