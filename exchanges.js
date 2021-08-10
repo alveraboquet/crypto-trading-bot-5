@@ -15,8 +15,6 @@ class Kraken {
         if (score === 0) {
             throw new Error('Specified score is invalid!');
         } else {
-            if (Math.abs(score) < config.exchange.scoreThreshold) return null;
-
             const currentBalance = await this.getBalance();
             const tickerInfo = await this.getTickerInfo();
 
@@ -26,6 +24,8 @@ class Kraken {
             let targetRatio = balanceRatio + score;
             if (targetRatio > 1) targetRatio = 1;
             else if (targetRatio < 0) targetRatio = 0;
+
+            if (Math.abs(score) < config.exchange.scoreThreshold) return null;
 
             if (score > 0) {
                 if (!currentBalance[config.quoteAsset]) return null;
@@ -41,9 +41,9 @@ class Kraken {
                 const orderData = {
                     pair: config.assetPair,
                     type: 'buy',
-                    ordertype: 'limit',
+                    ordertype: config.exchange.forceMaker ? 'limit' : 'market',
                     volume,
-                    price,
+                    price: config.exchange.forceMaker ? price : undefined,
                     expiretm: `+30`,
                     oflags: config.exchange.forceMaker ? 'post' : undefined
                 };
@@ -81,9 +81,9 @@ class Kraken {
                 const orderData = {
                     pair: config.assetPair,
                     type: 'sell',
-                    ordertype: 'limit',
-                    volume: volume,
-                    price: price,
+                    ordertype: config.exchange.forceMaker ? 'limit' : 'market',
+                    volume,
+                    price: config.exchange.forceMaker ? price : undefined,
                     expiretm: `+30`,
                     oflags: config.exchange.forceMaker ? 'post' : undefined
                 };

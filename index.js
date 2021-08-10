@@ -31,7 +31,7 @@ async function loop(currentTimestamp, includeCurrentPeriod) {
                 config.periodInterval,
                 config.assetPair,
                 undefined,
-                'limit',
+                config.exchange.forceMaker ? 'limit' : 'market',
                 orderInfo.price,
                 orderInfo.volume,
                 orderInfo.cost,
