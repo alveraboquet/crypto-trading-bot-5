@@ -89,7 +89,6 @@ function stop() {
 process.on('SIGINT', stop);
 process.on('SIGBREAK', stop);
 process.on('SIGTERM', stop);
-
 process.on('uncaughtException', (error, origin) => {
     console.log(`${error}`);
     stop();
@@ -100,7 +99,7 @@ const getScore = analysis.combineScoreFunctions(config.scoring.functions);
 const source = new sources[config.source.name]();
 const exchange = new exchanges[config.exchange.name]();
 
-const mongoClient = new MongoClient(config.mongoUrl);
+const mongoClient = new MongoClient(config.mongoUrl.replaceAll('{password}', encodeURIComponent(process.env.MONGO_PASS)));
 
 let loopInterval;
 async function run() {

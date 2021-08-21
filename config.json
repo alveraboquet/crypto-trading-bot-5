@@ -1,5 +1,5 @@
 {
-    "mongoUrl": "mongodb://localhost:27017",
+    "mongoUrl": "mongodb://cryptoTradingBot:{password}@localhost:27017",
     "baseAsset": "XXBT",
     "quoteAsset": "USDT",
     "assetPair": "XBTUSDT",
